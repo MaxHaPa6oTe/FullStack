@@ -7,12 +7,12 @@ fullName: {
 },
 email: {
     type: String,
-    require: true,
+    required: true,
     unique: true,
 },
 passwordHash: {
     type: String,
-    require: true,
+    required: true,
 },
 avatarUrl: String,
 },
