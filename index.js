@@ -1,5 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import multer from 'multer'
 
 import { loginValidation, postCreateValidation, registerValidation } from './validation.js';
 
@@ -16,6 +17,17 @@ mongoose.connect(
 
 const app = express();
 
+const storage = multer.diskStorage({
+    destination: (_, __, cd) => {
+        cd(null, 'uploads')
+    },
+    filename: (_, file, cd) => {
+        cd(null, file.originalname)
+    },  
+})
+
+const upload = multer({ storage })
+
 app.use(express.json());
 
 app.post('/auth/login', loginValidation, UserController.login)
@@ -28,11 +40,21 @@ app.post('/auth/register', registerValidation, UserController.register);
 
 app.get('/auth/me', checkAuth, UserController.getMe)
 
+
+
+
+app.post('/upload', checkAuth, upload.single('image'), (req, res) => {
+    res.json({
+        url: `uploads/${req.file.originalname}`,
+    })
+})
+
+
 app.get('/posts', PostController.getAll)
 app.get('/posts/:id', PostController.getOne) //не работает
 app.post('/posts', checkAuth, postCreateValidation, PostController.create)
-app.get('/posts/:id', checkAuth, PostController.remove)  //не работает
-// app.get('/posts', PostController.update)
+app.delete('/posts/:id', checkAuth, PostController.remove)  //не работает
+app.patch('/posts/:id', checkAuth, PostController.update)
 
 app.listen(4444, (err) => {
     if (err) {
