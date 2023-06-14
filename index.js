@@ -1,7 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import multer from 'multer'
-
+import cors from 'cors'
 import { loginValidation, postCreateValidation, registerValidation } from './validation.js';
 
 import checkAuth from './utils/checkAuth.js'
@@ -29,6 +29,9 @@ const storage = multer.diskStorage({
 const upload = multer({ storage })
 
 app.use(express.json());
+app.use(cors())
+app.use('/uploads', express.static('uploads')) //?????
+
 
 app.post('/auth/login', loginValidation, UserController.login)
 
@@ -50,10 +53,12 @@ app.post('/upload', checkAuth, upload.single('image'), (req, res) => {
 })
 
 
+app.get('/tags', PostController.getLastTags)
 app.get('/posts', PostController.getAll)
-app.get('/posts/:id', PostController.getOne) //не работает
+app.get('/posts/tags', PostController.getLastTags)
+app.get('/posts/:id', PostController.getOne) //не работал
 app.post('/posts', checkAuth, postCreateValidation, PostController.create)
-app.delete('/posts/:id', checkAuth, PostController.remove)  //не работает
+app.delete('/posts/:id', checkAuth, PostController.remove)  //не работал
 app.patch('/posts/:id', checkAuth, PostController.update)
 
 app.listen(4444, (err) => {

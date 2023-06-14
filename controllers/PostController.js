@@ -1,5 +1,20 @@
 import PostModel from '../models/Post.js';
 
+export const getLastTags = async (req, res) => {
+ try {
+        const posts = await PostModel.find().limit(5).exec()
+
+		const tags = posts.map(obj => obj.tags).flat().slice(0, 5)
+
+        res.json(posts)
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({
+            message: 'Не удалось получить статьи'
+        })
+    }
+}
+
 export const getAll = async (req, res) => {
     try {
         const posts = await PostModel.find().populate('user').exec()
@@ -16,70 +31,62 @@ export const getAll = async (req, res) => {
 
 export const getOne = async (req, res) => {
     try {
-        const postId = req.params.id
-        PostModel.findOneAndUpdate(
-        {
-            _id: postId,
-        }, 
-        {
-            $inc: { viewsCount: 1 },
-        },
-        {
-            returnDocument: 'after',
-        },
-        (err, doc) => {
-            if (err) {
-                console.log(err)
-            return res.status(500).json({
-            message: 'Не удалось вернуть статью',
-        })
-            }
-            if (!doc) {
-                return res.status(404).json({
-                    message: 'Статья не найдена',
-                })
-            }
-            res.json(doc)
-        }
-        )
+        const postId = req.params.id;
+    
+      PostModel.findOneAndUpdate(
+      {
+        _id: postId,
+      },
+      {
+        $inc: { viewsCount: 1 },
+      },
+      {
+        returnDocument: "after",
+      }
+    ).then((doc, err) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).json({
+          message: "Failed to return the post",
+        });
+      }
+      if (!doc) {
+        return res.status(404).json({
+          message: "Post not found",
+        });
+      }
+      res.json(doc);
+    });
     } catch (err) {
-        console.log(err)
-        res.status(500).json({
-            message: 'Не удалось получить статьи'
-        })
-    }
-}
+    console.log(err);
+    res.status(500).json({
+      message: "Error",
+      });
+     }
+    };
 
 
 export const remove = async (req, res) => {
     try {
-        const postId = req.params.id
-        PostModel.findByIdAndDelete({
-            _id: postId,
-        }, (err, doc) => {
-            if (err) {
-                console.log(err)
-             res.status(500).json({
-            message: 'Не удалось удалить статью'
-        })
-            }
-
-            if (!doc) {
-                return res.status(500).json({
-                    message: 'Статья не найдена'
-                })
-            }
-            res.json({
-                success: true,
-            })
-        })
+      const postId = req.params.id;
+      const deletedPost = await PostModel.findOneAndDelete({ _id: postId });
+  
+      if (!deletedPost) {
+        return res.status(404).json({
+          message: "Post was not found",
+        });
+      }
+  
+      res.json({
+        success: true,
+      });
     } catch (err) {
-        console.log(err)
-        res.status(500).json({
-            message: 'Не удалось получить статью'
-        })
+      console.log(err);
+      res.status(500).json({
+        message: "Failed to delete post",
+      });
     }
-}
+};
 
 
 export const create = async (req, res) => {
